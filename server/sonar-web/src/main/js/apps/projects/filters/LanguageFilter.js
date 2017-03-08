@@ -19,9 +19,11 @@
  */
 import React from 'react';
 import sortBy from 'lodash/sortBy';
-import FilterContainer from './FilterContainer';
-import LanguageFilterOption from './LanguageFilterOption';
-import LanguageFilterFooter from './LanguageFilterFooter';
+import {
+  FilterContainer,
+  LanguageFilterFooterContainer,
+  LanguageFilterOptionContainer
+} from './containers';
 
 export default class LanguageFilter extends React.Component {
   static propTypes = {
@@ -34,7 +36,7 @@ export default class LanguageFilter extends React.Component {
 
   renderOption = option => {
     return (
-      <LanguageFilterOption languageKey={option}/>
+      <LanguageFilterOptionContainer languageKey={option}/>
     );
   };
 
@@ -43,7 +45,7 @@ export default class LanguageFilter extends React.Component {
   }
 
   renderFooter = () => (
-    <LanguageFilterFooter
+    <LanguageFilterFooterContainer
         property={this.property}
         query={this.props.query}
         isFavorite={this.props.isFavorite}
