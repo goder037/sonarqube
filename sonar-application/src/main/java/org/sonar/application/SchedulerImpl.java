@@ -115,15 +115,9 @@ public class SchedulerImpl implements Scheduler, ProcessEventListener, ProcessLi
         p -> appState.isOperational(ProcessId.ELASTICSEARCH),
         () -> javaCommandFactory.createWebCommand(false));
     } else {
-      if (appState.tryToLockWebLeader()) {
-        tryToStartProcess(ProcessId.WEB_SERVER,
-          p -> appState.isOperational(ProcessId.ELASTICSEARCH),
-          () -> javaCommandFactory.createWebCommand(true));
-      } else {
-        tryToStartProcess(ProcessId.WEB_SERVER,
-          p -> appState.isOperational(ProcessId.ELASTICSEARCH) && appState.isOperational(ProcessId.WEB_SERVER),
-          () -> javaCommandFactory.createWebCommand(false));
-      }
+      tryToStartProcess(ProcessId.WEB_SERVER,
+        p -> appState.isOperational(ProcessId.ELASTICSEARCH),
+        () -> javaCommandFactory.createWebCommand(appState.tryToLockWebLeader()));
     }
   }
 
@@ -133,7 +127,7 @@ public class SchedulerImpl implements Scheduler, ProcessEventListener, ProcessLi
       javaCommandFactory::createCeCommand);
   }
 
-  private void tryToStartProcess(ProcessId processId, Predicate<SQProcess> startupCondition, Supplier<JavaCommand> commandSupplier) {
+  private boolean tryToStartProcess(ProcessId processId, Predicate<SQProcess> startupCondition, Supplier<JavaCommand> commandSupplier) {
     SQProcess process = processesById.get(processId);
     if (process != null && startupCondition.test(process)) {
       try {
@@ -146,6 +140,9 @@ public class SchedulerImpl implements Scheduler, ProcessEventListener, ProcessLi
         terminate();
         throw e;
       }
+      return true;
+    } else {
+      return false;
     }
   }
 
