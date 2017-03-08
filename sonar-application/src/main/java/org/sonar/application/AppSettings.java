@@ -17,23 +17,23 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.process.monitor;
+package org.sonar.application;
 
-import org.junit.Test;
+import java.util.List;
+import java.util.Optional;
+import org.sonar.process.ProcessId;
+import org.sonar.process.Props;
 
-import static org.assertj.core.api.Assertions.assertThat;
+public interface AppSettings {
 
-public class TimeoutsTest {
+  Props getProps();
 
-  @Test
-  public void test_default_values() throws Exception {
-    Timeouts timeouts = new Timeouts();
-    assertThat(timeouts.getTerminationTimeout()).isGreaterThan(1000L);
-  }
+  Optional<String> getValue(String key);
 
-  @Test
-  public void test_values() throws Exception {
-    Timeouts timeouts = new Timeouts(3L);
-    assertThat(timeouts.getTerminationTimeout()).isEqualTo(3L);
-  }
+  boolean isClusterEnabled();
+
+  List<ProcessId> getEnabledProcesses();
+
+  void reload();
+
 }

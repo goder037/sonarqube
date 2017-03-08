@@ -17,33 +17,17 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.process.monitor;
+package org.sonar.application;
 
-import java.io.File;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
 import org.sonar.process.ProcessId;
 
-public class JavaProcessLauncherTest {
+public interface AppState {
 
-  @Rule
-  public TemporaryFolder temp = new TemporaryFolder();
-  @Rule
-  public ExpectedException expectedException = ExpectedException.none();
+  void addListener(AppStateListener listener);
 
-  @Test
-  public void fail_to_launch() throws Exception {
-    File tempDir = temp.newFolder();
-    JavaCommand command = new JavaCommand(ProcessId.ELASTICSEARCH);
-    JavaProcessLauncher launcher = new JavaProcessLauncher(new Timeouts(), tempDir);
+  boolean isOperational(ProcessId processId);
 
-    expectedException.expect(IllegalStateException.class);
-    expectedException.expectMessage("Fail to launch [es]");
+  void setOperational(ProcessId processId);
 
-    // command is not correct (missing options), java.lang.ProcessBuilder#start()
-    // throws an exception
-    launcher.launch(command);
-  }
+  boolean tryToLockWebLeader();
 }

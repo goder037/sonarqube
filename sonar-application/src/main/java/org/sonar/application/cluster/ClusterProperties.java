@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-package org.sonar.application;
+package org.sonar.application.cluster;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -26,18 +26,19 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.process.Props;
+import org.sonar.application.AppSettings;
+import org.sonar.process.ProcessProperties;
 
 /**
  * Properties of the cluster configuration
  */
-final class ClusterProperties {
+public final class ClusterProperties {
+  static final String DEFAULT_PORT = "9003";
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterProperties.class);
 
   private final int port;
@@ -46,30 +47,18 @@ final class ClusterProperties {
   private final List<String> members;
   private final List<String> interfaces;
   private final String name;
-  private final String logLevel;
 
-  ClusterProperties(@Nonnull Props props) {
-    port = props.valueAsInt(ClusterParameters.PORT.getName(), ClusterParameters.PORT.getDefaultValueAsInt());
-    enabled = props.valueAsBoolean(ClusterParameters.ENABLED.getName(), ClusterParameters.ENABLED.getDefaultValueAsBoolean());
-    portAutoincrement = props.valueAsBoolean(ClusterParameters.PORT_AUTOINCREMENT.getName(), ClusterParameters.PORT_AUTOINCREMENT.getDefaultValueAsBoolean());
+  ClusterProperties(@Nonnull AppSettings appSettings) {
+    port = appSettings.getProps().valueAsInt(ProcessProperties.CLUSTER_PORT);
+    enabled = appSettings.getProps().valueAsBoolean(ProcessProperties.CLUSTER_ENABLED);
+    portAutoincrement = appSettings.getProps().valueAsBoolean(ProcessProperties.CLUSTER_PORT_AUTOINCREMENT);
     interfaces = extractInterfaces(
-      props.value(ClusterParameters.INTERFACES.getName(), ClusterParameters.INTERFACES.getDefaultValue())
+      appSettings.getProps().value(ProcessProperties.CLUSTER_INTERFACES)
     );
-    name = props.value(ClusterParameters.NAME.getName(), ClusterParameters.NAME.getDefaultValue());
-    logLevel = props.value(ClusterParameters.HAZELCAST_LOG_LEVEL.getName(), ClusterParameters.HAZELCAST_LOG_LEVEL.getDefaultValue());
+    name = appSettings.getProps().value(ProcessProperties.CLUSTER_NAME);
     members = extractMembers(
-      props.value(ClusterParameters.MEMBERS.getName(), ClusterParameters.MEMBERS.getDefaultValue())
+      appSettings.getProps().value(ProcessProperties.CLUSTER_MEMBERS)
     );
-  }
-
-  void populateProps(@Nonnull Props props) {
-    props.set(ClusterParameters.PORT.getName(), Integer.toString(port));
-    props.set(ClusterParameters.ENABLED.getName(), Boolean.toString(enabled));
-    props.set(ClusterParameters.PORT_AUTOINCREMENT.getName(), Boolean.toString(portAutoincrement));
-    props.set(ClusterParameters.INTERFACES.getName(), interfaces.stream().collect(Collectors.joining(",")));
-    props.set(ClusterParameters.NAME.getName(), name);
-    props.set(ClusterParameters.HAZELCAST_LOG_LEVEL.getName(), logLevel);
-    props.set(ClusterParameters.MEMBERS.getName(), members.stream().collect(Collectors.joining(",")));
   }
 
   int getPort() {
@@ -96,10 +85,6 @@ final class ClusterProperties {
     return name;
   }
 
-  String getLogLevel() {
-    return logLevel;
-  }
-
   void validate() {
     if (!enabled) {
       return;
@@ -108,7 +93,7 @@ final class ClusterProperties {
     checkArgument(
       StringUtils.isNotEmpty(name),
       "Cluster have been enabled but a %s has not been defined.",
-      ClusterParameters.NAME.getName()
+      ProcessProperties.CLUSTER_NAME
     );
 
     // Test validity of port
@@ -140,7 +125,7 @@ final class ClusterProperties {
       if (StringUtils.isNotEmpty(member)) {
         if (!member.contains(":")) {
           result.add(
-            String.format("%s:%s", member, ClusterParameters.PORT.getDefaultValue())
+            String.format("%s:%s", member, DEFAULT_PORT)
           );
         } else {
           result.add(member);

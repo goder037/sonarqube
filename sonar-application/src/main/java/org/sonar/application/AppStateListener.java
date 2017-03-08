@@ -17,28 +17,17 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.process.monitor;
+package org.sonar.application;
 
-/**
- * Most of the timeouts involved in process monitoring, in milliseconds
- */
-class Timeouts {
+import org.sonar.process.ProcessId;
 
-  private final long terminationTimeout;
-
-  Timeouts(long terminationTimeout) {
-    this.terminationTimeout = terminationTimeout;
-  }
-
-  public Timeouts() {
-    this(60_000L);
-  }
+public interface AppStateListener {
 
   /**
-   * [both monitor and monitored process] timeout of graceful termination before hard killing
+   * The method is called when the state is changed. When cluster
+   * mode is enabled, the event may be raised from another node.
+   *
+   * Listener must subscribe to {@link AppState#addListener(AppStateListener)}.
    */
-  long getTerminationTimeout() {
-    return terminationTimeout;
-  }
-
+  void onAppStateOperational(ProcessId processId);
 }

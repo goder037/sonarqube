@@ -19,13 +19,13 @@
  */
 package org.sonar.process.monitor;
 
+import java.io.File;
+import java.util.Properties;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.util.Properties;
 import org.sonar.process.ProcessId;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,7 +35,7 @@ public class JavaCommandTest {
   public TemporaryFolder temp = new TemporaryFolder();
 
   @Test
-  public void test_parameters() throws Exception {
+  public void test_command_with_complete_information() throws Exception {
     JavaCommand command = new JavaCommand(ProcessId.ELASTICSEARCH);
 
     command.setArgument("first_arg", "val1");
@@ -63,7 +63,7 @@ public class JavaCommandTest {
   }
 
   @Test
-  public void add_java_options() {
+  public void addJavaOptions_adds_jvm_options() {
     JavaCommand command = new JavaCommand(ProcessId.ELASTICSEARCH);
     assertThat(command.getJavaOptions()).isEmpty();
 

@@ -17,15 +17,16 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.process.monitor;
+package org.sonar.application;
 
-import java.io.File;
-import java.io.IOException;
+/**
+ * Background thread that checks if a stop request
+ * is sent, usually by Orchestrator
+ */
+public interface StopRequestWatcher {
 
-public interface FileSystem {
+  void startWatching();
 
-  void reset() throws IOException;
-
-  File getTempDir();
+  void stopWatching();
 
 }

@@ -28,6 +28,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.sonar.application.*;
+import org.sonar.application.PropsBuilder;
 import org.sonar.process.Props;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,7 +41,7 @@ public class PropsBuilderTest {
   public TemporaryFolder temp = new TemporaryFolder();
 
   private File homeDir;
-  private JdbcSettings jdbcSettings = mock(JdbcSettings.class);
+  private org.sonar.application.JdbcSettings jdbcSettings = mock(org.sonar.application.JdbcSettings.class);
 
   @Before
   public void before() throws IOException {
@@ -51,7 +53,7 @@ public class PropsBuilderTest {
     Properties rawProperties = new Properties();
     rawProperties.setProperty("foo", "bar");
 
-    Props props = new PropsBuilder(rawProperties, jdbcSettings, homeDir).build();
+    Props props = new org.sonar.application.PropsBuilder(rawProperties, jdbcSettings, homeDir).build();
 
     assertThat(props.value("foo")).isEqualTo("bar");
     assertThat(props.value("unknown")).isNull();
@@ -66,7 +68,7 @@ public class PropsBuilderTest {
 
     Properties rawProperties = new Properties();
     rawProperties.setProperty("sonar.origin", "raw");
-    Props props = new PropsBuilder(rawProperties, jdbcSettings, homeDir).build();
+    Props props = new org.sonar.application.PropsBuilder(rawProperties, jdbcSettings, homeDir).build();
 
     // properties loaded from file
     assertThat(props.value("sonar.jdbc.username")).isEqualTo("angela");
@@ -78,7 +80,7 @@ public class PropsBuilderTest {
   @Test
   public void utf8_file_encoding() throws Exception {
     FileUtils.write(new File(homeDir, "conf/sonar.properties"), "utf8prop=Thônes", StandardCharsets.UTF_8);
-    Props props = new PropsBuilder(new Properties(), jdbcSettings, homeDir).build();
+    Props props = new org.sonar.application.PropsBuilder(new Properties(), jdbcSettings, homeDir).build();
     assertThat(props.value("utf8prop")).isEqualTo("Thônes");
   }
 
@@ -86,7 +88,7 @@ public class PropsBuilderTest {
   public void do_not_load_properties_file_if_not_exists() throws Exception {
     Properties rawProperties = new Properties();
     rawProperties.setProperty("sonar.origin", "raw");
-    Props props = new PropsBuilder(rawProperties, jdbcSettings, homeDir).build();
+    Props props = new org.sonar.application.PropsBuilder(rawProperties, jdbcSettings, homeDir).build();
 
     assertThat(props.value("sonar.origin")).isEqualTo("raw");
   }

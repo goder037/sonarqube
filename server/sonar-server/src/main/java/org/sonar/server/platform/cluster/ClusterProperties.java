@@ -25,6 +25,7 @@ import org.sonar.api.PropertyType;
 import org.sonar.api.config.PropertyDefinition;
 
 public class ClusterProperties {
+  // TODO TO BE REMOVED
 
   public static final String ENABLED = "sonar.cluster.enabled";
   public static final String STARTUP_LEADER = "sonar.cluster.web.startupLeader";

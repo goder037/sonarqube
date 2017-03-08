@@ -105,7 +105,7 @@ import static org.sonar.process.monitor.StreamGobbler.LOGGER_GOBBLER;
  * </p>
  *
  */
-class AppLogging {
+public class AppLogging {
 
   private static final String CONSOLE_LOGGER = "console";
   private static final String CONSOLE_PLAIN_APPENDER = "CONSOLE";
@@ -117,7 +117,7 @@ class AppLogging {
 
   private final LogbackHelper helper = new LogbackHelper();
 
-  LoggerContext configure(Props props) {
+  public LoggerContext configure(Props props) {
     LoggerContext ctx = helper.getRootContext();
     ctx.reset();
 
@@ -132,7 +132,11 @@ class AppLogging {
     helper.apply(
       LogLevelConfig.newBuilder()
         .rootLevelFor(ProcessId.APP)
-        .immutableLevel("com.hazelcast", Level.toLevel(props.value(ClusterParameters.HAZELCAST_LOG_LEVEL.getName())))
+        .immutableLevel("com.hazelcast",
+          Level.toLevel(
+            props.value(ClusterParameters.HAZELCAST_LOG_LEVEL.getName(),  ClusterParameters.HAZELCAST_LOG_LEVEL.getDefaultValue())
+          )
+        )
         .build(), props);
 
     return ctx;

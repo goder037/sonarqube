@@ -17,47 +17,54 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.process;
+package org.sonar.process.monitor;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.process.ProcessId;
 
-import static org.sonar.process.Lifecycle.State.HARD_STOPPING;
-import static org.sonar.process.Lifecycle.State.INIT;
-import static org.sonar.process.Lifecycle.State.OPERATIONAL;
-import static org.sonar.process.Lifecycle.State.RESTARTING;
-import static org.sonar.process.Lifecycle.State.STARTED;
-import static org.sonar.process.Lifecycle.State.STARTING;
-import static org.sonar.process.Lifecycle.State.STOPPED;
-import static org.sonar.process.Lifecycle.State.STOPPING;
+import static org.sonar.process.monitor.Lifecycle.State.INIT;
+import static org.sonar.process.monitor.Lifecycle.State.STARTED;
+import static org.sonar.process.monitor.Lifecycle.State.STARTING;
+import static org.sonar.process.monitor.Lifecycle.State.STOPPED;
+import static org.sonar.process.monitor.Lifecycle.State.STOPPING;
 
 public class Lifecycle {
-  private static final Logger LOG = LoggerFactory.getLogger(Lifecycle.class);
 
   public enum State {
-    INIT, STARTING, STARTED, OPERATIONAL, RESTARTING, STOPPING, HARD_STOPPING, STOPPED
+    INIT, STARTING, STARTED, STOPPING, STOPPED
   }
 
+  private static final Logger LOG = LoggerFactory.getLogger(Lifecycle.class);
   private static final Map<State, Set<State>> TRANSITIONS = buildTransitions();
 
-  private State state = INIT;
+  private final ProcessId processId;
+  private final List<ProcessLifecycleListener> listeners;
+  private State state;
+
+  public Lifecycle(ProcessId processId, List<ProcessLifecycleListener> listeners) {
+    this(processId, listeners, INIT);
+  }
+
+  Lifecycle(ProcessId processId, List<ProcessLifecycleListener> listeners, State initialState) {
+    this.processId = processId;
+    this.listeners = listeners;
+    this.state = initialState;
+  }
 
   private static Map<State, Set<State>> buildTransitions() {
     Map<State, Set<State>> res = new EnumMap<>(State.class);
     res.put(INIT, toSet(STARTING));
-    res.put(STARTING, toSet(STARTED, STOPPING, HARD_STOPPING));
-    res.put(STARTED, toSet(OPERATIONAL, RESTARTING, STOPPING, HARD_STOPPING));
-    res.put(OPERATIONAL, toSet(RESTARTING, STOPPING, HARD_STOPPING));
-    res.put(RESTARTING, toSet(STARTING, HARD_STOPPING));
+    res.put(STARTING, toSet(STARTED, STOPPING, STOPPED));
+    res.put(STARTED, toSet(STOPPING, STOPPED));
     res.put(STOPPING, toSet(STOPPED));
-    res.put(HARD_STOPPING, toSet(STOPPED));
     res.put(STOPPED, toSet());
     return res;
   }
@@ -72,35 +79,19 @@ public class Lifecycle {
     return EnumSet.copyOf(Arrays.asList(states));
   }
 
-  public State getState() {
+  State getState() {
     return state;
   }
 
-  public synchronized boolean tryToMoveTo(State to) {
+  synchronized boolean tryToMoveTo(State to) {
     boolean res = false;
     State currentState = state;
     if (TRANSITIONS.get(currentState).contains(to)) {
       this.state = to;
       res = true;
+      listeners.forEach(listener -> listener.onProcessState(processId, to));
     }
-    LOG.trace("tryToMoveTo from {} to {} => {}", currentState, to, res);
+    LOG.trace("tryToMoveTo {} from {} to {} => {}", processId.getKey(), currentState, to, res);
     return res;
-  }
-
-  @Override
-  public boolean equals(@Nullable Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    Lifecycle lifecycle = (Lifecycle) o;
-    return state == lifecycle.state;
-  }
-
-  @Override
-  public int hashCode() {
-    return state.hashCode();
   }
 }

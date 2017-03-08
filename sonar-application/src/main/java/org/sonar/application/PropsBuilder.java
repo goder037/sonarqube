@@ -31,26 +31,26 @@ import org.sonar.process.ConfigurationUtils;
 import org.sonar.process.ProcessProperties;
 import org.sonar.process.Props;
 
-class PropsBuilder {
+public class PropsBuilder {
 
   private final File homeDir;
   private final JdbcSettings jdbcSettings;
   private final Properties rawProperties;
 
-  PropsBuilder(Properties rawProperties, JdbcSettings jdbcSettings, File homeDir) {
+  public PropsBuilder(Properties rawProperties, JdbcSettings jdbcSettings, File homeDir) {
     this.rawProperties = rawProperties;
     this.jdbcSettings = jdbcSettings;
     this.homeDir = homeDir;
   }
 
-  PropsBuilder(Properties rawProperties, JdbcSettings jdbcSettings) {
+  public PropsBuilder(Properties rawProperties, JdbcSettings jdbcSettings) {
     this(rawProperties, jdbcSettings, detectHomeDir());
   }
 
   /**
    * Load optional conf/sonar.properties, interpolates environment variables
    */
-  Props build() {
+  public Props build() {
     Properties p = loadPropertiesFile(homeDir);
     p.putAll(rawProperties);
     p.setProperty(ProcessProperties.PATH_HOME, homeDir.getAbsolutePath());

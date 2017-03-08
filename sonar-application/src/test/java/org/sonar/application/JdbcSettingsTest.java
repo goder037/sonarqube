@@ -41,7 +41,7 @@ public class JdbcSettingsTest {
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
 
-  JdbcSettings settings = new JdbcSettings();
+  org.sonar.application.JdbcSettings settings = new org.sonar.application.JdbcSettings();
 
   @Test
   public void resolve_H2_provider_when_props_is_empty_and_set_URL_to_default_H2() {

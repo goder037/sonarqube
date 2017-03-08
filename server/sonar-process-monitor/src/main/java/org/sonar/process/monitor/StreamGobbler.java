@@ -22,10 +22,11 @@ package org.sonar.process.monitor;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Reads process output and writes to logs
@@ -49,7 +50,7 @@ public class StreamGobbler extends Thread {
 
   @Override
   public void run() {
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(is, UTF_8))) {
       String line;
       while ((line = br.readLine()) != null) {
         logger.info(line);

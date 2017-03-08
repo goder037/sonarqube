@@ -24,11 +24,11 @@ import org.apache.commons.lang.StringUtils;
 import java.util.Map;
 import java.util.Properties;
 
-class CommandLineParser {
+public class CommandLineParser {
   /**
    * Build properties from command-line arguments and system properties
    */
-  Properties parseArguments(String[] args) {
+  public Properties parseArguments(String[] args) {
     Properties props = argumentsToProperties(args);
 
     // complete with only the system properties that start with "sonar."

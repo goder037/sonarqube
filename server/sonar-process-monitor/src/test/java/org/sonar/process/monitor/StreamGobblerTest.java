@@ -19,11 +19,10 @@
  */
 package org.sonar.process.monitor;
 
+import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
-
-import java.io.InputStream;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;

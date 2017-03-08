@@ -17,23 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.process.monitor;
+@ParametersAreNonnullByDefault
+package org.sonar.application.cluster;
 
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import static org.mockito.Mockito.*;
-
-public class WatcherThreadTest {
-
-  @Test(timeout = 10000L)
-  public void continue_even_if_interrupted() throws Exception {
-    Monitor monitor = mock(Monitor.class);
-    ProcessRef ref = mock(ProcessRef.class, Mockito.RETURNS_DEEP_STUBS);
-    when(ref.getProcess().waitFor()).thenThrow(new InterruptedException()).thenReturn(0);
-    WatcherThread watcher = new WatcherThread(ref, monitor);
-    watcher.start();
-    watcher.join();
-    verify(monitor).stopAsync();
-  }
-}
+import javax.annotation.ParametersAreNonnullByDefault;

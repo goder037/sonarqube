@@ -33,6 +33,12 @@ public class ProcessProperties {
   public static final String CLUSTER_SEARCH_DISABLED = "sonar.cluster.search.disabled";
   public static final String CLUSTER_SEARCH_HOSTS = "sonar.cluster.search.hosts";
   public static final String CLUSTER_WEB_DISABLED = "sonar.cluster.web.disabled";
+  public static final String CLUSTER_MEMBERS = "sonar.cluster.members";
+  public static final String CLUSTER_PORT = "sonar.cluster.port";
+  public static final String CLUSTER_PORT_AUTOINCREMENT = "sonar.cluster.port_autoincrement";
+  public static final String CLUSTER_INTERFACES = "sonar.cluster.interfaces";
+  public static final String CLUSTER_NAME = "sonar.cluster.name";
+  public static final String HAZELCAST_LOG_LEVEL = "sonar.log.level.app.hazelcast";
 
   public static final String JDBC_URL = "sonar.jdbc.url";
   public static final String JDBC_DRIVER_PATH = "sonar.jdbc.driverPath";
@@ -121,6 +127,13 @@ public class ProcessProperties {
     defaults.put(ProcessProperties.JDBC_MAX_WAIT, "5000");
     defaults.put(ProcessProperties.JDBC_MIN_EVICTABLE_IDLE_TIME_MILLIS, "600000");
     defaults.put(ProcessProperties.JDBC_TIME_BETWEEN_EVICTION_RUNS_MILLIS, "30000");
+
+    defaults.put(ProcessProperties.CLUSTER_NAME, "");
+    defaults.put(ProcessProperties.CLUSTER_INTERFACES, "");
+    defaults.put(ProcessProperties.CLUSTER_MEMBERS, "");
+    defaults.put(ProcessProperties.CLUSTER_PORT, "9003");
+    defaults.put(ProcessProperties.CLUSTER_PORT_AUTOINCREMENT, "false");
+    defaults.put(ProcessProperties.HAZELCAST_LOG_LEVEL, "WARN");
     return defaults;
   }
 

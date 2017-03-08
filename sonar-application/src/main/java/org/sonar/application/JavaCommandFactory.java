@@ -19,14 +19,14 @@
  */
 package org.sonar.application;
 
-import java.io.File;
-import org.sonar.process.Props;
 import org.sonar.process.monitor.JavaCommand;
 
 public interface JavaCommandFactory {
-  JavaCommand createESCommand(Props props, File homeDir);
 
-  JavaCommand createWebCommand(Props props, File homeDir);
+  JavaCommand createEsCommand();
 
-  JavaCommand createCeCommand(Props props, File homeDir);
+  JavaCommand createWebCommand(boolean leader);
+
+  JavaCommand createCeCommand();
+
 }

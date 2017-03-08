@@ -19,13 +19,18 @@
  */
 package org.sonar.process.monitor;
 
-import java.io.File;
-import java.io.IOException;
+import org.sonar.process.ProcessId;
 
-public interface FileSystem {
+@FunctionalInterface
+public interface ProcessLifecycleListener {
 
-  void reset() throws IOException;
-
-  File getTempDir();
+  /**
+   * This method is called when the state of the process with the specified {@link ProcessId}
+   * changes.
+   *
+   * Call blocks the process watcher. Implementations should be asynchronous and
+   * fork a new thread if call can be long.
+   */
+  void onProcessState(ProcessId processId, Lifecycle.State state);
 
 }

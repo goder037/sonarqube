@@ -248,27 +248,23 @@ public class AppLoggingTest {
 
   @Test
   public void no_info_log_from_hazelcast() throws IOException {
-    props.set(ClusterParameters.ENABLED.getName(), "true");
-    new ClusterProperties(props).populateProps(props);
+    props.set(ProcessProperties.CLUSTER_ENABLED, "true");
     underTest.configure(props);
 
     assertThat(
-      LoggerFactory.getLogger("com.hazelcast").isInfoEnabled()
-    ).isEqualTo(false);
+      LoggerFactory.getLogger("com.hazelcast").isInfoEnabled()).isEqualTo(false);
   }
 
   @Test
   public void configure_logging_for_hazelcast() throws IOException {
-    props.set(ClusterParameters.ENABLED.getName(), "true");
-    props.set(ClusterParameters.HAZELCAST_LOG_LEVEL.getName(), "INFO");
+    props.set(ProcessProperties.CLUSTER_ENABLED, "true");
+    props.set(ProcessProperties.HAZELCAST_LOG_LEVEL, "INFO");
     underTest.configure(props);
 
     assertThat(
-      LoggerFactory.getLogger("com.hazelcast").isInfoEnabled()
-    ).isEqualTo(true);
+      LoggerFactory.getLogger("com.hazelcast").isInfoEnabled()).isEqualTo(true);
     assertThat(
-      LoggerFactory.getLogger("com.hazelcast").isDebugEnabled()
-    ).isEqualTo(false);
+      LoggerFactory.getLogger("com.hazelcast").isDebugEnabled()).isEqualTo(false);
   }
 
   private void emulateRunFromSonarScript() {

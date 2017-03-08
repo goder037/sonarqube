@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import javax.annotation.Nullable;
-import org.apache.commons.lang.StringUtils;
 import org.sonar.process.ProcessId;
 
 public class JavaCommand {
@@ -73,7 +72,7 @@ public class JavaCommand {
   }
 
   public JavaCommand addJavaOption(String s) {
-    if (StringUtils.isNotBlank(s)) {
+    if (!s.isEmpty()) {
       javaOptions.add(s);
     }
     return this;
@@ -139,7 +138,7 @@ public class JavaCommand {
 
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder("JavaCommand{");
+    StringBuilder sb = new StringBuilder("JavaCommand{");
     sb.append("workDir=").append(workDir);
     sb.append(", javaOptions=").append(javaOptions);
     sb.append(", className='").append(className).append('\'');

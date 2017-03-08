@@ -19,13 +19,25 @@
  */
 package org.sonar.process.monitor;
 
-import java.io.File;
-import java.io.IOException;
+import org.sonar.process.ProcessId;
 
-public interface FileSystem {
+@FunctionalInterface
+public interface ProcessEventListener {
 
-  void reset() throws IOException;
+  enum Type {
+    OPERATIONAL,
+    ASK_FOR_RESTART
+  }
 
-  File getTempDir();
+  /**
+   * This method is called when the process with the specified {@link ProcessId}
+   * sends the event through the ipc shared memory.
+   * Note that there can be a delay since the instant the process sets the flag
+   * (see {@link SQProcess#WATCHER_DELAY_MS}).
+   *
+   * Call blocks the process watcher. Implementations should be asynchronous and
+   * fork a new thread if call can be long.
+   */
+  void onProcessEvent(ProcessId processId, Type type);
 
 }

@@ -17,15 +17,19 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonar.process.monitor;
+package org.sonar.application;
 
-import java.io.File;
-import java.io.IOException;
+public interface Scheduler {
 
-public interface FileSystem {
+  void schedule();
 
-  void reset() throws IOException;
+  /**
+   * Stops all processes and waits for them to be down.
+   */
+  void terminate();
 
-  File getTempDir();
-
+  /**
+   * Blocks until all processes are down
+   */
+  void awaitTermination();
 }

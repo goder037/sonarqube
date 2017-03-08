@@ -20,9 +20,9 @@
 package org.sonar.application;
 
 import java.io.File;
+import java.util.Optional;
 import org.sonar.process.ProcessId;
 import org.sonar.process.ProcessProperties;
-import org.sonar.process.Props;
 import org.sonar.process.monitor.JavaCommand;
 
 import static org.sonar.process.ProcessProperties.HTTPS_PROXY_HOST;
@@ -44,29 +44,37 @@ public class JavaCommandFactoryImpl implements JavaCommandFactory {
     "socksProxyHost",
     "socksProxyPort"};
 
+  private final AppSettings settings;
+
+  public JavaCommandFactoryImpl(AppSettings settings) {
+    this.settings = settings;
+  }
+
   @Override
-  public JavaCommand createESCommand(Props props, File workDir) {
-    return newJavaCommand(ProcessId.ELASTICSEARCH, props, workDir)
+  public JavaCommand createEsCommand() {
+    File homeDir = settings.getProps().nonNullValueAsFile(ProcessProperties.PATH_HOME);
+    return newJavaCommand(ProcessId.ELASTICSEARCH, homeDir)
       .addJavaOptions("-Djava.awt.headless=true")
-      .addJavaOptions(props.nonNullValue(ProcessProperties.SEARCH_JAVA_OPTS))
-      .addJavaOptions(props.nonNullValue(ProcessProperties.SEARCH_JAVA_ADDITIONAL_OPTS))
+      .addJavaOptions(settings.getProps().nonNullValue(ProcessProperties.SEARCH_JAVA_OPTS))
+      .addJavaOptions(settings.getProps().nonNullValue(ProcessProperties.SEARCH_JAVA_ADDITIONAL_OPTS))
       .setClassName("org.sonar.search.SearchServer")
       .addClasspath("./lib/common/*")
       .addClasspath("./lib/search/*");
   }
 
   @Override
-  public JavaCommand createWebCommand(Props props, File workDir) {
-    JavaCommand command = newJavaCommand(ProcessId.WEB_SERVER, props, workDir)
+  public JavaCommand createWebCommand(boolean leader) {
+    File homeDir = settings.getProps().nonNullValueAsFile(ProcessProperties.PATH_HOME);
+    JavaCommand command = newJavaCommand(ProcessId.WEB_SERVER, homeDir)
       .addJavaOptions(ProcessProperties.WEB_ENFORCED_JVM_ARGS)
-      .addJavaOptions(props.nonNullValue(ProcessProperties.WEB_JAVA_OPTS))
-      .addJavaOptions(props.nonNullValue(ProcessProperties.WEB_JAVA_ADDITIONAL_OPTS))
+      .addJavaOptions(settings.getProps().nonNullValue(ProcessProperties.WEB_JAVA_OPTS))
+      .addJavaOptions(settings.getProps().nonNullValue(ProcessProperties.WEB_JAVA_ADDITIONAL_OPTS))
       // required for logback tomcat valve
-      .setEnvVariable(ProcessProperties.PATH_LOGS, props.nonNullValue(ProcessProperties.PATH_LOGS))
+      .setEnvVariable(ProcessProperties.PATH_LOGS, settings.getProps().nonNullValue(ProcessProperties.PATH_LOGS))
       .setClassName("org.sonar.server.app.WebServer")
       .addClasspath("./lib/common/*")
       .addClasspath("./lib/server/*");
-    String driverPath = props.value(ProcessProperties.JDBC_DRIVER_PATH);
+    String driverPath = settings.getProps().value(ProcessProperties.JDBC_DRIVER_PATH);
     if (driverPath != null) {
       command.addClasspath(driverPath);
     }
@@ -74,41 +82,44 @@ public class JavaCommandFactoryImpl implements JavaCommandFactory {
   }
 
   @Override
-  public JavaCommand createCeCommand(Props props, File workDir) {
-    JavaCommand command = newJavaCommand(ProcessId.COMPUTE_ENGINE, props, workDir)
+  public JavaCommand createCeCommand() {
+    File homeDir = settings.getProps().nonNullValueAsFile(ProcessProperties.PATH_HOME);
+    JavaCommand command = newJavaCommand(ProcessId.COMPUTE_ENGINE, homeDir)
       .addJavaOptions(ProcessProperties.CE_ENFORCED_JVM_ARGS)
-      .addJavaOptions(props.nonNullValue(ProcessProperties.CE_JAVA_OPTS))
-      .addJavaOptions(props.nonNullValue(ProcessProperties.CE_JAVA_ADDITIONAL_OPTS))
+      .addJavaOptions(settings.getProps().nonNullValue(ProcessProperties.CE_JAVA_OPTS))
+      .addJavaOptions(settings.getProps().nonNullValue(ProcessProperties.CE_JAVA_ADDITIONAL_OPTS))
       .setClassName("org.sonar.ce.app.CeServer")
       .addClasspath("./lib/common/*")
       .addClasspath("./lib/server/*")
       .addClasspath("./lib/ce/*");
-    String driverPath = props.value(ProcessProperties.JDBC_DRIVER_PATH);
+    String driverPath = settings.getProps().value(ProcessProperties.JDBC_DRIVER_PATH);
     if (driverPath != null) {
       command.addClasspath(driverPath);
     }
     return command;
   }
 
-  private static JavaCommand newJavaCommand(ProcessId id, Props props, File workDir) {
+  private JavaCommand newJavaCommand(ProcessId id, File homeDir) {
     JavaCommand command = new JavaCommand(id)
-      .setWorkDir(workDir)
-      .setArguments(props.rawProperties());
+      .setWorkDir(homeDir)
+      .setArguments(settings.getProps().rawProperties());
 
     for (String key : PROXY_PROPERTY_KEYS) {
-      if (props.contains(key)) {
-        command.addJavaOption("-D" + key + "=" + props.value(key));
-      }
+      settings.getValue(key).ifPresent(val -> command.addJavaOption("-D" + key + "=" + val));
     }
+
     // defaults of HTTPS are the same than HTTP defaults
-    setSystemPropertyToDefaultIfNotSet(command, props, HTTPS_PROXY_HOST, HTTP_PROXY_HOST);
-    setSystemPropertyToDefaultIfNotSet(command, props, HTTPS_PROXY_PORT, HTTP_PROXY_PORT);
+    setSystemPropertyToDefaultIfNotSet(command, HTTPS_PROXY_HOST, HTTP_PROXY_HOST);
+    setSystemPropertyToDefaultIfNotSet(command, HTTPS_PROXY_PORT, HTTP_PROXY_PORT);
     return command;
   }
 
-  private static void setSystemPropertyToDefaultIfNotSet(JavaCommand command, Props props, String httpsProperty, String httpProperty) {
-    if (!props.contains(httpsProperty) && props.contains(httpProperty)) {
-      command.addJavaOption("-D" + httpsProperty + "=" + props.value(httpProperty));
+  private void setSystemPropertyToDefaultIfNotSet(JavaCommand command,
+    String httpsProperty, String httpProperty) {
+    Optional<String> httpValue = settings.getValue(httpProperty);
+    Optional<String> httpsValue = settings.getValue(httpsProperty);
+    if (!httpsValue.isPresent() && httpValue.isPresent()) {
+      command.addJavaOption("-D" + httpsProperty + "=" + httpValue.get());
     }
   }
 }
