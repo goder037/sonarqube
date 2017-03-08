@@ -110,9 +110,21 @@ public class SchedulerImpl implements Scheduler, ProcessEventListener, ProcessLi
   }
 
   private void tryToStartWeb() {
-    tryToStartProcess(ProcessId.WEB_SERVER,
-      p -> appState.isOperational(ProcessId.ELASTICSEARCH),
-      () -> javaCommandFactory.createWebCommand(true));
+    if (appState.isOperational(ProcessId.WEB_SERVER)) {
+      tryToStartProcess(ProcessId.WEB_SERVER,
+        p -> appState.isOperational(ProcessId.ELASTICSEARCH),
+        () -> javaCommandFactory.createWebCommand(false));
+    } else {
+      if (appState.tryToLockWebLeader()) {
+        tryToStartProcess(ProcessId.WEB_SERVER,
+          p -> appState.isOperational(ProcessId.ELASTICSEARCH),
+          () -> javaCommandFactory.createWebCommand(true));
+      } else {
+        tryToStartProcess(ProcessId.WEB_SERVER,
+          p -> appState.isOperational(ProcessId.ELASTICSEARCH) && appState.isOperational(ProcessId.WEB_SERVER),
+          () -> javaCommandFactory.createWebCommand(false));
+      }
+    }
   }
 
   private void tryToStartCe() {
@@ -153,7 +165,6 @@ public class SchedulerImpl implements Scheduler, ProcessEventListener, ProcessLi
     if (process != null) {
       process.stop(1, TimeUnit.MINUTES);
     }
-
   }
 
   /**
